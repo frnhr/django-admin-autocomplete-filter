@@ -26,17 +26,17 @@ class AutocompleteFilter(admin.SimpleListFilter):
         }
 
     def __init__(self, request, params, model, model_admin):
-        self.parameter_name = '{}__{}__exact'.format(self.field_name, self.field_pk)
+        self.parameter_name = '{}__{}__exact'.format(self.field_name, self.field_pk)  # TODO this is needed on class level
         super().__init__(request, params, model, model_admin)
 
         if self.rel_model:
             model = self.rel_model
 
-        remote_field = model._meta.get_field(self.field_name).remote_field
+        remote_field, field_desc = self._get_remote_field(
+            self.field_name, model)
 
         widget = AutocompleteSelect(remote_field, model_admin.admin_site)
 
-        field_desc = getattr(model, self.field_name)
         try:
             # First try to get the related using logic from ManyToManyDescriptor; any of these accesses might fail
             related_model = field_desc.rel.related_model if field_desc.reverse else field_desc.rel.model
@@ -63,6 +63,14 @@ class AutocompleteFilter(admin.SimpleListFilter):
             value=self.used_parameters.get(self.parameter_name, ''),
             attrs=attrs
         )
+
+    def _get_remote_field(self, field_path, base_model):
+        while '__' in field_path:
+            section_path, field_path = field_path.split('__', 1)
+            base_model = base_model._meta.get_field(section_path).remote_field.model
+        remote_field = base_model._meta.get_field(field_path).remote_field
+        field_desc = getattr(base_model, field_path)
+        return remote_field, field_desc
 
     def get_queryset_for_field(self, model, name):
         field_desc = getattr(model, name)
