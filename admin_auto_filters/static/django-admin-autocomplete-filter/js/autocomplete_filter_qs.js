@@ -58,16 +58,19 @@ django.jQuery(document).ready(function ($) {
     });
 
     var observer = new MutationObserver(function() {
-        var $select = $changelistSidebar.find('select.admin-autocomplete');
-        var val = $select.val();
-        var oldVal = $changelistSidebar.data('autocompleteInitialVal')[$select[0].name];
-        if (val !== oldVal) {
-            if (val) {
-                window.location.search = search_replace($select[0].name, val);
-            } else {
-                window.location.search = search_remove($select[0].name, oldVal);
+        var $selects = $changelistSidebar.find('select.admin-autocomplete');
+        $selects.each(function () {
+            let $select = $(this);
+            var val = $select.val();
+            var oldVal = $changelistSidebar.data('autocompleteInitialVal')[$select[0].name];
+            if (val !== oldVal) {
+                if (val) {
+                    window.location.search = search_replace($select[0].name, val);
+                } else {
+                    window.location.search = search_remove($select[0].name, oldVal);
+                }
             }
-        }
+        });
     });
     observer.observe($changelistSidebar[0], { attributes: false, childList: true, subtree: true });
 });
