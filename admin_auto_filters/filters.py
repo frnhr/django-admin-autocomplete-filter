@@ -14,6 +14,7 @@ class AutocompleteFilter(admin.SimpleListFilter):
     is_placeholder_title = False
     widget_attrs = {}
     rel_model = None
+    queryset_filter_kwargs = None
 
     class Media:
         js = (
@@ -44,6 +45,8 @@ class AutocompleteFilter(admin.SimpleListFilter):
         except:
             # Fall back to behavior that should work with ReverseManyToOneDescriptor created by ForeignKey
             queryset = field_desc.get_queryset()
+
+        queryset = queryset.filter(**(self.queryset_filter_kwargs or {}))
 
         field = forms.ModelChoiceField(
             queryset=queryset,
