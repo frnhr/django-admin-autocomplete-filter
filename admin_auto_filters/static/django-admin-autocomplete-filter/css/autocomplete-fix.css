@@ -2,3 +2,27 @@
     min-width: 16.5em;
     max-width: 100%;
 }
+
+#changelist-filter .select2-selection {
+    overflow: auto;
+    width: 100%;
+}
+#changelist-filter ul.select2-selection__rendered {
+    width: auto;
+}
+#changelist-filter .select2-selection__clear {
+    position: absolute;
+    bottom: 20px;
+    right: 0px;
+    padding: 2px 5px;
+    margin: 0;
+    clear: both;
+}
+#changelist-filter .select2-selection__choice {
+    margin: 2px 2px 0 2px;
+    clear: both;
+}
+#changelist-filter ul>li.select2-search--inline:last-child {
+    clear: both;
+    padding-bottom: 2px;
+}

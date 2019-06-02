@@ -1,20 +1,28 @@
-from django.contrib.admin.widgets import AutocompleteSelect
+from django.contrib.admin.widgets import (
+    AutocompleteSelect,
+    AutocompleteSelectMultiple,
+)
 from django import forms
 from django.contrib import admin
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models.fields.related_descriptors import ReverseManyToOneDescriptor, ManyToManyDescriptor
+from django.db.models.fields.related_descriptors import (
+    ManyToManyDescriptor,
+    ReverseManyToOneDescriptor,
+)
 from django.forms.widgets import Media, MEDIA_TYPES
 
 
-class AutocompleteFilter(admin.SimpleListFilter):
+class AutocompleteFilterBase(admin.SimpleListFilter):
     template = 'django-admin-autocomplete-filter/autocomplete-filter.html'
     title = ''
     field_name = ''
-    field_pk = 'id'
+    parameter_name = f'{field_name}__id__exact'
     is_placeholder_title = False
     widget_attrs = {}
     rel_model = None
     queryset_filter_kwargs = None
+    widget_class = None
+    form_field_class = None
 
     class Media:
         js = (
@@ -27,7 +35,6 @@ class AutocompleteFilter(admin.SimpleListFilter):
         }
 
     def __init__(self, request, params, model, model_admin):
-        self.parameter_name = '{}__{}__exact'.format(self.field_name, self.field_pk)  # TODO this is needed on class level
         super().__init__(request, params, model, model_admin)
 
         if self.rel_model:
@@ -36,7 +43,7 @@ class AutocompleteFilter(admin.SimpleListFilter):
         remote_field, field_desc = self._get_remote_field(
             self.field_name, model)
 
-        widget = AutocompleteSelect(remote_field, model_admin.admin_site)
+        widget = self.widget_class(remote_field, model_admin.admin_site)
 
         try:
             # First try to get the related using logic from ManyToManyDescriptor; any of these accesses might fail
@@ -48,7 +55,7 @@ class AutocompleteFilter(admin.SimpleListFilter):
 
         queryset = queryset.filter(**(self.queryset_filter_kwargs or {}))
 
-        field = forms.ModelChoiceField(
+        field = self.form_field_class(
             queryset=queryset,
             widget=widget,
             required=False,
@@ -63,7 +70,7 @@ class AutocompleteFilter(admin.SimpleListFilter):
             attrs['data-Placeholder'] = self.title
         self.rendered_widget = field.widget.render(
             name=self.parameter_name,
-            value=self.used_parameters.get(self.parameter_name, ''),
+            value=self.value(),
             attrs=attrs
         )
 
@@ -104,8 +111,38 @@ class AutocompleteFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         return ()
 
+    def value(self):
+        raise NotImplementedError()
+
     def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(**{self.parameter_name: self.value()})
-        else:
+        for value in self.value():
+            queryset = queryset.filter(**{self.parameter_name: value})
+        return queryset
+
+
+class AutocompleteFilter(AutocompleteFilterBase):
+    widget_class = AutocompleteSelect
+    form_field_class = forms.ModelMultipleChoiceField
+
+    def value(self):
+        return self.used_parameters.get(self.parameter_name, '')
+
+
+class AutocompleteMultipleAllFilter(AutocompleteFilterBase):
+    widget_class = AutocompleteSelectMultiple
+    form_field_class =forms.ModelChoiceField
+
+    def value(self):
+        csv_ids = self.used_parameters.get(self.parameter_name, '')
+        return csv_ids.split(',') if csv_ids else []
+
+
+class AutocompleteMultipleAnyFilter(AutocompleteMultipleAllFilter):
+    widget_class = AutocompleteSelectMultiple
+    form_field_class =forms.ModelChoiceField
+
+    def queryset(self, request, queryset):
+        if not self.value():
             return queryset
+        queryset = queryset.filter(**{self.parameter_name: self.value()})
+        return queryset
