@@ -3,6 +3,11 @@
     max-width: 100%;
 }
 
+#changelist-filter select.admin-autocomplete {
+    max-width: 100%;
+    min-height: 45px;
+    padding-bottom: 50px;
+}
 #changelist-filter .select2-selection {
     overflow: auto;
     width: 100%;

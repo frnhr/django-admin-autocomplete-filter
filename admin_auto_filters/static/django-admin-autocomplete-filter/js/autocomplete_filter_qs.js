@@ -9,6 +9,10 @@ django.jQuery(document).ready(function ($) {
 
     function search_remove(name, value) {
         var new_search_hash = search_to_hash();
+        if (!Array.isArray(value)) {
+            value = [value];
+        }
+        value = value.join(',');
         if (new_search_hash[name].indexOf(value) >= 0) {
           new_search_hash[name].splice(new_search_hash[name].indexOf(value), 1);
           if (new_search_hash[name].length == 0) {
@@ -63,8 +67,8 @@ django.jQuery(document).ready(function ($) {
             let $select = $(this);
             var val = $select.val();
             var oldVal = $changelistSidebar.data('autocompleteInitialVal')[$select[0].name];
-            if (val !== oldVal) {
-                if (val) {
+            if (JSON.stringify(val) !== JSON.stringify(oldVal)) {  // JSON to support array comparison
+                if ('' + val) {  // again, casting to string to see empty arrays as false
                     window.location.search = search_replace($select[0].name, val);
                 } else {
                     window.location.search = search_remove($select[0].name, oldVal);
