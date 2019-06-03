@@ -54,6 +54,7 @@ class AutocompleteFilterBase(admin.SimpleListFilter):
             queryset = field_desc.get_queryset()
 
         queryset = queryset.filter(**(self.queryset_filter_kwargs or {}))
+        queryset |= queryset.model.objects.filter(id__in=self.value())
 
         field = self.form_field_class(
             queryset=queryset,
