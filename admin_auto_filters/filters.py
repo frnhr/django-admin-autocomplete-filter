@@ -126,7 +126,8 @@ class AutocompleteFilter(AutocompleteFilterBase):
     form_field_class = forms.ModelChoiceField
 
     def value(self):
-        return self.used_parameters.get(self.parameter_name, '')
+        return list(filter(
+            None, [self.used_parameters.get(self.parameter_name, '')]))
 
 
 class AutocompleteMultipleAllFilter(AutocompleteFilterBase):

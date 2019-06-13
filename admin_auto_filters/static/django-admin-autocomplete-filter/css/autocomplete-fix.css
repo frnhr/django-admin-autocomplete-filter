@@ -9,8 +9,11 @@
     padding-bottom: 50px;
 }
 #changelist-filter .select2-selection {
-    overflow: auto;
+    overflow: hidden;
     width: 100%;
+}
+#changelist-filter .select2-selection--multiple {
+    overflow: auto;
 }
 #changelist-filter ul.select2-selection__rendered {
     width: auto;
