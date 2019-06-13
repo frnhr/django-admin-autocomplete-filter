@@ -123,7 +123,7 @@ class AutocompleteFilterBase(admin.SimpleListFilter):
 
 class AutocompleteFilter(AutocompleteFilterBase):
     widget_class = AutocompleteSelect
-    form_field_class = forms.ModelMultipleChoiceField
+    form_field_class = forms.ModelChoiceField
 
     def value(self):
         return self.used_parameters.get(self.parameter_name, '')
@@ -131,7 +131,7 @@ class AutocompleteFilter(AutocompleteFilterBase):
 
 class AutocompleteMultipleAllFilter(AutocompleteFilterBase):
     widget_class = AutocompleteSelectMultiple
-    form_field_class =forms.ModelChoiceField
+    form_field_class = forms.ModelChoiceField
 
     def value(self):
         csv_ids = self.used_parameters.get(self.parameter_name, '')
@@ -140,7 +140,7 @@ class AutocompleteMultipleAllFilter(AutocompleteFilterBase):
 
 class AutocompleteMultipleAnyFilter(AutocompleteMultipleAllFilter):
     widget_class = AutocompleteSelectMultiple
-    form_field_class =forms.ModelChoiceField
+    form_field_class = forms.ModelChoiceField
 
     def queryset(self, request, queryset):
         if not self.value():
